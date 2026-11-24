@@ -1,222 +1,549 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CI/CD Deployment Monitoring System</title>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
             margin: 0;
-            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
             color: #24344d;
         }
 
-        h1 { color: #24344d; }
-
-        .cards {
+        .header {
+            background: linear-gradient(120deg, #123b79, #2563c7);
+            color: white;
+            padding: 25px 4%;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 15px;
-            margin: 25px 0;
             flex-wrap: wrap;
         }
 
-        .card, .section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px #ddd;
-            margin-bottom: 20px;
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
         }
 
-        .card { min-width: 150px; }
-        .card h2 { margin: 5px 0; }
+        .header p {
+            margin: 0;
+            color: #dceaff;
+        }
 
-        input, select, button {
-            padding: 10px;
-            margin: 8px 5px 8px 0;
+        .online {
+            background: #16a765;
+            padding: 10px 17px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: auto;
+            padding: 25px 4%;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            padding: 22px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+            border-left: 5px solid #3278e5;
+        }
+
+        .card.total { border-color: #3278e5; }
+        .card.success-card { border-color: #19a66a; }
+        .card.failed-card { border-color: #e74c4c; }
+        .card.rate-card { border-color: #8756d9; }
+
+        .card p {
+            margin: 0 0 12px;
+            color: #68778c;
+            font-weight: bold;
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .blue { color: #3278e5; }
+        .green { color: #15945c; }
+        .red { color: #df4141; }
+        .purple { color: #8756d9; }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            background: #174b91;
+            color: white;
+            padding: 15px 20px;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd6e4;
+            border-radius: 7px;
+            font-size: 14px;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3278e5;
+        }
+
+        .full {
+            grid-column: 1 / -1;
         }
 
         button {
-            background: #2457a7;
+            background: #2464bd;
             color: white;
+            padding: 12px 22px;
             border: none;
+            border-radius: 7px;
+            font-size: 15px;
+            font-weight: bold;
             cursor: pointer;
+        }
+
+        button:hover {
+            background: #174b91;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            text-align: center;
+            gap: 12px;
+        }
+
+        .comparison-item {
+            padding: 15px 8px;
+            border-right: 1px solid #e3e8f0;
+        }
+
+        .comparison-item:last-child {
+            border-right: none;
+        }
+
+        .comparison-item p {
+            font-weight: bold;
+            color: #58677d;
+        }
+
+        .comparison-item h2 {
+            font-size: 27px;
+            margin: 12px 0;
+        }
+
+        .reduction {
+            background: #e7f7ed;
+            color: #167b49;
+            padding: 13px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .failure-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 13px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .failure-row:last-child {
+            border-bottom: none;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            min-width: 750px;
         }
 
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+        th {
+            background: #edf2f9;
+            color: #334966;
             text-align: left;
+            padding: 14px;
+            font-size: 14px;
         }
 
-        .success { color: green; font-weight: bold; }
-        .failed { color: red; font-weight: bold; }
+        td {
+            padding: 13px;
+            border-bottom: 1px solid #e8edf4;
+            font-size: 14px;
+        }
 
-        .section { overflow-x: auto; }
+        tr:hover td {
+            background: #f7faff;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .status-success {
+            background: #dff5e8;
+            color: #12834c;
+        }
+
+        .status-failed {
+            background: #ffe4e4;
+            color: #d52f2f;
+        }
+
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .api-grid a {
+            display: block;
+            padding: 13px;
+            background: #edf4ff;
+            color: #2059a6;
+            text-decoration: none;
+            border-radius: 7px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .api-grid a:hover {
+            background: #dceaff;
+        }
+
+        .empty {
+            padding: 20px;
+            color: #718096;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            color: #7c899a;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .api-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 550px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 21px;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <h1>CI/CD Deployment Monitoring System</h1>
-    <p>Monitor deployment history, failures and deployment efficiency.</p>
+<header class="header">
+    <div>
+        <h1>🚀 CI/CD Deployment Monitoring System</h1>
+        <p>Monitor deployment history, failures and deployment efficiency.</p>
+    </div>
+    <div class="online">● System Online</div>
+</header>
+
+<main class="container">
 
     <div class="cards">
-        <div class="card">
+        <div class="card total">
             <p>Total Deployments</p>
-            <h2>{{ total }}</h2>
+            <h2 class="blue">{{ total }}</h2>
         </div>
 
-        <div class="card">
+        <div class="card success-card">
             <p>Successful</p>
-            <h2 class="success">{{ successful }}</h2>
+            <h2 class="green">{{ successful }}</h2>
         </div>
 
-        <div class="card">
+        <div class="card failed-card">
             <p>Failed</p>
-            <h2 class="failed">{{ failed }}</h2>
+            <h2 class="red">{{ failed }}</h2>
         </div>
 
-        <div class="card">
+        <div class="card rate-card">
             <p>Failure Rate</p>
-            <h2>{{ failure_rate }}%</h2>
+            <h2 class="purple">{{ failure_rate }}%</h2>
         </div>
     </div>
 
-    <div class="section">
-        <h2>Record New Deployment</h2>
+    <div class="main-grid">
 
-        <form action="/record" method="POST">
+        <section class="section">
+            <h2 class="section-title">＋ Record New Deployment</h2>
 
-            <input type="text" name="version"
-                   placeholder="Version (e.g. v1.2)" required>
+            <div class="section-body">
+                <form action="/record" method="POST">
+                    <div class="form-grid">
 
-            <select name="deployment_type" required>
-                <option value="">Select Deployment Type</option>
-                <option value="Manual">Manual</option>
-                <option value="Automated">Automated</option>
-            </select>
+                        <div class="field">
+                            <label>Version</label>
+                            <input type="text" name="version"
+                                   placeholder="e.g. v1.5" required>
+                        </div>
 
-            <select name="status" required>
-                <option value="Success">Success</option>
-                <option value="Failed">Failed</option>
-            </select>
+                        <div class="field">
+                            <label>Deployment Type</label>
+                            <select name="deployment_type" required>
+                                <option value="">Select Type</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Automated">Automated</option>
+                            </select>
+                        </div>
 
-            <input type="number" name="duration"
-                   placeholder="Duration in seconds"
-                   min="0" step="0.1" required>
+                        <div class="field">
+                            <label>Status</label>
+                            <select name="status" required>
+                                <option value="Success">Success</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
 
-            <input type="text" name="failure_reason"
-                   placeholder="Failure reason (if failed)">
+                        <div class="field">
+                            <label>Duration (seconds)</label>
+                            <input type="number" name="duration"
+                                   placeholder="e.g. 30.5"
+                                   min="0" step="0.1" required>
+                        </div>
 
-            <button type="submit">Save Deployment</button>
-        </form>
+                        <div class="field full">
+                            <label>Failure Reason (if failed)</label>
+                            <input type="text" name="failure_reason"
+                                   placeholder="e.g. Docker build failed">
+                        </div>
+
+                        <div class="full">
+                            <button type="submit">💾 Save Deployment</button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <div>
+            <section class="section">
+                <h2 class="section-title">◷ Deployment Time Comparison</h2>
+
+                <div class="section-body">
+                    <div class="comparison">
+
+                        <div class="comparison-item">
+                            <p>Manual Average Time</p>
+                            <h2 class="blue">
+                                {% if manual_avg is not none %}
+                                    {{ manual_avg }} sec
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </h2>
+                        </div>
+
+                        <div class="comparison-item">
+                            <p>Automated Average Time</p>
+                            <h2 class="green">
+                                {% if automated_avg is not none %}
+                                    {{ automated_avg }} sec
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </h2>
+                        </div>
+
+                    </div>
+
+                    {% if manual_avg is not none and automated_avg is not none %}
+                        {% if manual_avg > 0 %}
+                            <div class="reduction">
+                                Time Reduction:
+                                {{ ((manual_avg - automated_avg) / manual_avg * 100) | round(2) }}%
+                            </div>
+                        {% else %}
+                            <p>Manual deployment time is zero; reduction cannot be calculated.</p>
+                        {% endif %}
+                    {% else %}
+                        <p>Record both deployment types to compare their average times.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">⚠ Failure Analysis</h2>
+
+                <div class="section-body">
+                    {% if failure_analysis %}
+                        {% for item in failure_analysis %}
+                            <div class="failure-row">
+                                <strong>🔴 {{ item.reason }}</strong>
+                                <span>{{ item.occurrences }} occurrence(s)</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="empty">No deployment failures recorded.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
     </div>
 
-    <div class="section">
-        <h2>Deployment Time Comparison</h2>
+    <section class="section">
+        <h2 class="section-title">☷ Deployment History</h2>
 
-        <p>
-            Manual Average Time:
-            <strong>
-                {% if manual_avg is not none %}
-                    {{ manual_avg }} seconds
-                {% else %}
-                    No data available
-                {% endif %}
-            </strong>
-        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Version</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Failure Reason</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
 
-        <p>
-            Automated Average Time:
-            <strong>
-                {% if automated_avg is not none %}
-                    {{ automated_avg }} seconds
-                {% else %}
-                    No data available
-                {% endif %}
-            </strong>
-        </p>
+                <tbody>
+                    {% for item in deployments %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td><strong>{{ item.version }}</strong></td>
+                        <td>{{ item.deployment_type }}</td>
+                        <td>
+                            {% if item.status == 'Success' %}
+                                <span class="status status-success">✓ Success</span>
+                            {% else %}
+                                <span class="status status-failed">✕ Failed</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.duration_seconds }} sec</td>
+                        <td>{{ item.failure_reason or '-' }}</td>
+                        <td>{{ item.created_at }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="empty">
+                            No deployment records yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-        {% if manual_avg is not none and automated_avg is not none %}
-            {% if manual_avg > 0 %}
-                <p>
-                    Time reduction:
-                    <strong>
-                        {{ ((manual_avg - automated_avg) / manual_avg * 100) | round(2) }}%
-                    </strong>
-                </p>
-            {% else %}
-                <p>Manual deployment time is zero; percentage reduction cannot be calculated.</p>
-            {% endif %}
-        {% else %}
-            <p>Record both manual and automated deployments to compare their average times.</p>
-        {% endif %}
-    </div>
+    <section class="section">
+        <h2 class="section-title">⚙ System APIs</h2>
 
-    <div class="section">
-        <h2>Failure Analysis</h2>
+        <div class="section-body api-grid">
+            <a href="/health">↗ Health Check API</a>
+            <a href="/api/deployments">↗ Deployment History API</a>
+            <a href="/api/failure-analysis">↗ Failure Analysis API</a>
+            <a href="/api/deployment-comparison">↗ Deployment Comparison API</a>
+        </div>
+    </section>
 
-        {% if failure_analysis %}
-            {% for item in failure_analysis %}
-                <p>
-                    <strong>{{ item.reason }}</strong>
-                    — {{ item.occurrences }} occurrence(s)
-                </p>
-            {% endfor %}
-        {% else %}
-            <p>No deployment failures recorded.</p>
-        {% endif %}
-    </div>
+</main>
 
-    <div class="section">
-        <h2>Deployment History</h2>
-
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Version</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Duration</th>
-                <th>Failure Reason</th>
-                <th>Date</th>
-            </tr>
-
-            {% for item in deployments %}
-            <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.version }}</td>
-                <td>{{ item.deployment_type }}</td>
-                <td class="{{ 'success' if item.status == 'Success' else 'failed' }}">
-                    {{ item.status }}
-                </td>
-                <td>{{ item.duration_seconds }} sec</td>
-                <td>{{ item.failure_reason or '-' }}</td>
-                <td>{{ item.created_at }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7">No deployment records yet.</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>System APIs</h2>
-        <p><a href="/health">Health Check API</a></p>
-        <p><a href="/api/deployments">Deployment History API</a></p>
-        <p><a href="/api/failure-analysis">Failure Analysis API</a></p>
-        <p><a href="/api/deployment-comparison">Deployment Comparison API</a></p>
-    </div>
+<footer class="footer">
+    CI/CD Deployment Monitoring System | BCA Major Project
+</footer>
 
 </body>
 </html>
