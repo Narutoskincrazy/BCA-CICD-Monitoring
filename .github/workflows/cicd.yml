@@ -1,3 +1,4 @@
+
 name: BCA CI-CD Pipeline
 
 on:
@@ -27,3 +28,25 @@ jobs:
 
       - name: Build Docker Image
         run: docker build -t bca-cicd-monitoring:v1 .
+
+      - name: Run Application Container
+        run: docker run -d --name bca-cicd-test -p 5001:5001 bca-cicd-monitoring:v1
+
+      - name: Verify Application Health
+        run: |
+          for i in {1..15}; do
+            if curl -fsS http://localhost:5001/health; then
+              echo "Application health check passed"
+              exit 0
+            fi
+            echo "Waiting for application..."
+            sleep 2
+          done
+
+          echo "Health check failed"
+          docker logs bca-cicd-test
+          exit 1
+
+      - name: Stop Test Container
+        if: always()
+        run: docker rm -f bca-cicd-test || true
